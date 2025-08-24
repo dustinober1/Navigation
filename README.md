@@ -28,8 +28,8 @@ The agent navigates in a large, square world collecting bananas:
 
 1. Clone this repository:
 ```bash
-git clone <your-repo-url>
-cd navigation-project
+git clone https://github.com/yourusername/navigation-dqn.git
+cd Navigation
 ```
 
 2. Install dependencies:
@@ -77,12 +77,16 @@ test_agent(num_episodes=5)
 ├── checkpoint.pth         # Saved model weights
 ├── README.md             # This file
 ├── Report.md             # Detailed project report
-└── requirements.txt      # Python dependencies
+├── requirements.txt      # Python dependencies
+├── training_progress.png # Training results visualization
+└── .gitignore           # Git ignore rules
 ```
 
 ## Results
 
 The agent successfully solves the environment in **390 episodes**, achieving an average score of +13.01 over 100 consecutive episodes.
+
+![Training Progress](training_progress.png)
 
 ## Author
 
