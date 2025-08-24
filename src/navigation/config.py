@@ -27,8 +27,8 @@ SOLVE_SCORE = 13.0
 SOLVE_WINDOW = 100
 
 # Saving
-CHECKPOINT_PATH = "checkpoint.pth"
-SCORES_PATH = "scores.npy"
+CHECKPOINT_PATH = "results/checkpoint.pth"
+SCORES_PATH = "results/scores.npy"
 
 # Random seed
 SEED = 0

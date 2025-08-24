@@ -112,3 +112,8 @@ Banana_Mac.app/
 logs/
 runs/
 results/
+# Results and outputs
+results/*.pth
+results/*.npy
+results/*.png
+results/*.jpg

@@ -11,9 +11,12 @@ from collections import deque
 import time
 from unityagents import UnityEnvironment
 
-from agent import Agent
-from prioritized_agent import PrioritizedAgent
-import config
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from src.navigation.agents import Agent, PrioritizedAgent
+from src.navigation import config
 
 
 def train_variant(agent, env, brain_name, variant_name, n_episodes=1000, max_t=config.MAX_STEPS, 

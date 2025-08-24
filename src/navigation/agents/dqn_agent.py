@@ -4,20 +4,20 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from model import QNetwork, DuelingQNetwork
-from prioritized_buffer import PrioritizedReplayBuffer
+from ..models import QNetwork, DuelingQNetwork
+from ..buffers import ReplayBuffer
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-class PrioritizedAgent:
-    """Interacts with and learns from the environment using Prioritized Experience Replay."""
+class Agent:
+    """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, seed, lr=5e-4, buffer_size=int(1e5), 
                  batch_size=64, gamma=0.99, tau=1e-3, update_every=4, double_dqn=False, 
-                 dueling_dqn=False, alpha=0.6, beta=0.4, beta_increment=0.001):
-        """Initialize a PrioritizedAgent object.
+                 dueling_dqn=False):
+        """Initialize an Agent object.
         
         Params
         ======
@@ -32,9 +32,6 @@ class PrioritizedAgent:
             update_every (int): how often to update the network
             double_dqn (bool): whether to use Double DQN
             dueling_dqn (bool): whether to use Dueling DQN architecture
-            alpha (float): prioritization exponent
-            beta (float): importance sampling exponent
-            beta_increment (float): increment for beta per step
         """
         self.state_size = state_size
         self.action_size = action_size
@@ -56,9 +53,8 @@ class PrioritizedAgent:
             self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=lr)
 
-        # Prioritized Replay memory
-        self.memory = PrioritizedReplayBuffer(action_size, buffer_size, batch_size, seed, 
-                                            alpha, beta, beta_increment)
+        # Replay memory
+        self.memory = ReplayBuffer(action_size, buffer_size, batch_size, seed)
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
 
@@ -96,14 +92,14 @@ class PrioritizedAgent:
             return random.choice(np.arange(self.action_size))
 
     def learn(self, experiences, gamma):
-        """Update value parameters using given batch of experience tuples with importance sampling.
+        """Update value parameters using given batch of experience tuples.
 
         Params
         ======
-            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done, weights, idxs) tuples 
+            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples 
             gamma (float): discount factor
         """
-        states, actions, rewards, next_states, dones, weights, idxs = experiences
+        states, actions, rewards, next_states, dones = experiences
 
         if self.double_dqn:
             # Double DQN: Use local network to select actions, target network to evaluate
@@ -119,19 +115,12 @@ class PrioritizedAgent:
         # Get expected Q values from local model
         Q_expected = self.qnetwork_local(states).gather(1, actions)
 
-        # Compute TD errors for priority updates
-        td_errors = Q_targets - Q_expected
-        
-        # Compute weighted loss using importance sampling weights
-        loss = (weights * F.mse_loss(Q_expected, Q_targets, reduction='none')).mean()
-        
+        # Compute loss
+        loss = F.mse_loss(Q_expected, Q_targets)
         # Minimize the loss
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-
-        # Update priorities in replay buffer
-        self.memory.update_priorities(idxs, td_errors.detach().cpu().numpy())
 
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, self.tau)

@@ -10,9 +10,12 @@ import matplotlib.pyplot as plt
 from collections import deque
 from unityagents import UnityEnvironment
 
-from agent import Agent
-from prioritized_agent import PrioritizedAgent
-import config
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from src.navigation.agents import Agent, PrioritizedAgent
+from src.navigation import config
 
 
 def train_dqn(agent, env, brain_name, n_episodes=config.N_EPISODES, max_t=config.MAX_STEPS, 
