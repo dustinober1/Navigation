@@ -32,3 +32,13 @@ SCORES_PATH = "scores.npy"
 
 # Random seed
 SEED = 0
+
+# DQN Variant Settings
+DOUBLE_DQN = False
+DUELING_DQN = False
+PRIORITIZED_REPLAY = False
+
+# Prioritized Experience Replay parameters
+ALPHA = 0.6  # prioritization exponent
+BETA = 0.4   # importance sampling exponent
+BETA_INCREMENT = 0.001  # increment for beta per step

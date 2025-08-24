@@ -11,6 +11,7 @@ from collections import deque
 from unityagents import UnityEnvironment
 
 from agent import Agent
+from prioritized_agent import PrioritizedAgent
 import config
 
 
@@ -109,6 +110,9 @@ def main():
     parser.add_argument('--test', action='store_true', help='Test the agent')
     parser.add_argument('--episodes', type=int, default=config.N_EPISODES, help='Number of episodes')
     parser.add_argument('--checkpoint', type=str, default=config.CHECKPOINT_PATH, help='Checkpoint file')
+    parser.add_argument('--double-dqn', action='store_true', help='Use Double DQN')
+    parser.add_argument('--dueling-dqn', action='store_true', help='Use Dueling DQN')
+    parser.add_argument('--prioritized', action='store_true', help='Use Prioritized Experience Replay')
     
     args = parser.parse_args()
     
@@ -126,8 +130,29 @@ def main():
     print(f'State size: {state_size}')
     print(f'Action size: {action_size}')
     
-    # Initialize agent
-    agent = Agent(state_size=state_size, action_size=action_size, seed=config.SEED)
+    # Determine which features to use
+    double_dqn = args.double_dqn or config.DOUBLE_DQN
+    dueling_dqn = args.dueling_dqn or config.DUELING_DQN
+    prioritized = args.prioritized or config.PRIORITIZED_REPLAY
+    
+    # Print configuration
+    print(f'\nDQN Configuration:')
+    print(f'  Double DQN: {double_dqn}')
+    print(f'  Dueling DQN: {dueling_dqn}')
+    print(f'  Prioritized Replay: {prioritized}')
+    
+    # Initialize agent based on configuration
+    if prioritized:
+        agent = PrioritizedAgent(
+            state_size=state_size, action_size=action_size, seed=config.SEED,
+            double_dqn=double_dqn, dueling_dqn=dueling_dqn,
+            alpha=config.ALPHA, beta=config.BETA, beta_increment=config.BETA_INCREMENT
+        )
+    else:
+        agent = Agent(
+            state_size=state_size, action_size=action_size, seed=config.SEED,
+            double_dqn=double_dqn, dueling_dqn=dueling_dqn
+        )
     
     if args.train:
         print("\nStarting training...")
