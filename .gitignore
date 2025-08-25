@@ -106,6 +106,8 @@ Banana_Mac.app/
 *.x86_64
 *.app
 *.exe
+Banana_Linux_NoVis/
+*.zip
 
 # Model checkpoints and logs
 *.pth

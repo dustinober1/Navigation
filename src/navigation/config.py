@@ -1,7 +1,7 @@
 """Configuration file for DQN training hyperparameters."""
 
 # Environment settings
-UNITY_ENV_PATH = "/data/Banana_Linux_NoVis/Banana.x86_64"
+UNITY_ENV_PATH = "/home/dobercode/Navigation/Banana_Linux_NoVis/Banana.x86_64"
 
 # Network architecture
 FC1_UNITS = 64
