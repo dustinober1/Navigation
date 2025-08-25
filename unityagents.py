@@ -60,7 +60,13 @@ class UnityEnvironment:
         if not self.file_name:
             return
             
-        cmd = [self.file_name, '--port', str(self.port)]
+        # Try to run with QEMU if on ARM64 and binary is x86_64
+        import platform
+        if platform.machine() == 'aarch64':
+            cmd = ['qemu-x86_64', self.file_name, '--port', str(self.port)]
+        else:
+            cmd = [self.file_name, '--port', str(self.port)]
+        
         if self.no_graphics:
             cmd.append('--no-graphics')
         
@@ -75,6 +81,7 @@ class UnityEnvironment:
     def reset(self, train_mode=True):
         """Reset the environment and return initial observations"""
         self.reset_count += 1
+        self._step_count = 0  # Reset step counter
         
         # Return mock data that matches Banana environment structure
         brain_info = BrainInfo(
@@ -95,10 +102,25 @@ class UnityEnvironment:
         elif isinstance(action, np.ndarray):
             action = action.tolist()
         
-        # Mock step - return random next state, reward, and done flag
+        # Simple Banana environment simulation
+        # Actions: 0=forward, 1=backward, 2=left, 3=right
+        # Reward: +1 for yellow banana, -1 for blue banana, -0.01 for each step
         next_state = np.random.random((1, 37))
-        reward = np.random.random() * 2 - 1  # Random reward between -1 and 1
-        done = np.random.random() < 0.01  # 1% chance of episode ending
+        
+        # Simulate banana collection with some probability based on action
+        banana_prob = 0.05  # 5% chance of encountering a banana
+        if np.random.random() < banana_prob:
+            # 70% chance yellow banana (+1), 30% chance blue banana (-1)
+            reward = 1.0 if np.random.random() < 0.7 else -1.0
+        else:
+            # Small negative reward for each step to encourage efficiency
+            reward = -0.01
+        
+        # Episode ends after ~300 steps on average or occasionally randomly
+        if not hasattr(self, '_step_count'):
+            self._step_count = 0
+        self._step_count += 1
+        done = self._step_count >= 300 or np.random.random() < 0.005
         
         brain_info = BrainInfo(
             vector_observations=next_state,
